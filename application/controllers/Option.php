@@ -738,6 +738,18 @@ public function update_ppob(){
             $data['inputerror'][] = 'harga_jual';
             $data['error_string'][] = 'Harga jual is required';
             $data['status'] = FALSE;
+		}
+		
+		if($this->input->post('harga_jual_online') == ''){
+            $data['inputerror'][] = 'harga_jual_online';
+            $data['error_string'][] = 'harga_jual_online is required';
+            $data['status'] = FALSE;
+		}
+		
+		if($this->input->post('harga_jual_reseller') == ''){
+            $data['inputerror'][] = 'harga_jual_reseller';
+            $data['error_string'][] = 'harga_jual_reseller is required';
+            $data['status'] = FALSE;
         }
         
         if($this->input->post('setok') == ''){

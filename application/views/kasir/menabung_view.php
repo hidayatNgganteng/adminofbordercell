@@ -79,6 +79,10 @@
     <i class="fas fa-angle-up"></i>
   </a>
 
+  <div style="position: absolute; width: 100%; height: 100%; display:none; align-items: center; justify-content: center; left: 0; top: 0; background-color: rgba(0,0,0,0.75);" id="loading">
+    <img style="width: 500px; height: auto" src="<?php echo base_url(); ?>assets/images/loading.gif" />
+  </div>
+
   <script src="<?= base_url() ?>assets/jquery/jquery-3.2.1.min.js"></script>
   <script src="<?= base_url() ?>assets/bootstrap-4.1.3/js/bootstrap.min.js"></script>
   <script src="<?= base_url() ?>assets/js/sb-admin-2.js"></script>
@@ -92,6 +96,8 @@
       var table;
       var lunasiHutangProses = false
       $(document).ready(function(){
+          $("#loading").css('display','flex')
+
           table = $('#tabelBarang').DataTable({
             "columnDefs": [
               {
@@ -99,6 +105,9 @@
                 "orderable": false,
               }
             ],
+            "rowCallback": function( row, data, dataIndex){
+                $("#loading").css('display','none')
+            },
             "order": [],
             "serverSide": true, 
             "ajax": {
@@ -114,34 +123,6 @@
        {
            table.ajax.reload(null,false);
        }
-
-       function lunasi_hutang(idHutang) {
-        if (!lunasiHutangProses) {
-          lunasiHutangProses = true
-          var url = "<?php echo site_url('option/lunasi_hutang/') ?>" + idHutang;
-          
-          $.ajax({
-            url : url,
-            type: "POST",
-            dataType: "JSON",
-            success: function(data){
-              lunasiHutangProses = false
-
-              if(data.status) {
-                $('#modal_form').modal('hide');
-                reload_table();
-              } else {
-                alert('error');  
-              }            
-            },
-            error: function (jqXHR, textStatus, errorThrown){
-              lunasiHutangProses = false
-              alert('error');
-            }
-          });
-        }
-       }
-      
   </script>
 </body>
 

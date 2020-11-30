@@ -158,6 +158,10 @@
     <i class="fas fa-angle-up"></i>
   </a>
 
+  <div style="position: absolute; width: 100%; height: 100%; display:none; align-items: center; justify-content: center; left: 0; top: 0; background-color: rgba(0,0,0,0.75);" id="loading">
+    <img style="width: 500px; height: auto" src="<?php echo base_url(); ?>assets/images/loading.gif" />
+  </div>
+
   <script src="<?= base_url() ?>assets/jquery/jquery-3.2.1.min.js"></script>
   <script src="<?= base_url() ?>assets/bootstrap-4.1.3/js/bootstrap.min.js"></script>
   <script src="<?= base_url() ?>assets/js/sb-admin-2.js"></script>
@@ -172,6 +176,8 @@
       var lunasiHutangProses = false
       var ktgKontrak, ktgSedekah, ktgKas
       $(document).ready(function(){
+          $("#loading").css('display','flex')
+
           var url = "<?php echo site_url('option/get_menabung_by_date/'.$date.'') ?>";
           var url_kontrakan = "<?php echo site_url('option/get_kontrakan_by_tahun/'.date('Y', strtotime($date)).'') ?>";
           
@@ -219,6 +225,8 @@
                   method: "POST",
                     success:function(data)
                     {
+                      $("#loading").css('display','none')
+                      
                       var obj=JSON.parse(data);
                       let dataSend = []
 
@@ -280,6 +288,7 @@
               });
             },
             error: function (jqXHR, textStatus, errorThrown){
+              $("#loading").css('display','none')
               alert('error');
             }
           });

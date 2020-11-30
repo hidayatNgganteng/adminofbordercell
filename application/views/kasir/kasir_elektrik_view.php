@@ -116,7 +116,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" onclick="if(confirm('Apakah sudah yakin ini bukan hutang?')){}else{return false;};" class="btn btn-md btn-primary" id="input"> Selesai</button>
+                    <button type="submit" onclick="if(confirm('Apakah sudah yakin ini bukan hutang?')){loading()}else{return false;};" class="btn btn-md btn-primary" id="input"> Selesai</button>
                     <button type="button" onClick="hutang_save()" class="btn btn-md btn-warning" id="hutang"> Hutang</button>
                   </form>
               </div>
@@ -135,6 +135,10 @@
     <i class="fas fa-angle-up"></i>
   </a>
 
+  <div style="position: absolute; width: 100%; height: 100%; display:none; align-items: center; justify-content: center; left: 0; top: 0; background-color: rgba(0,0,0,0.75);" id="loading">
+    <img style="width: 500px; height: auto" src="<?php echo base_url(); ?>assets/images/loading.gif" />
+  </div>
+
   <script src="<?= base_url() ?>assets/jquery/jquery-3.2.1.min.js"></script>
   <script src="<?= base_url() ?>assets/bootstrap-4.1.3/js/bootstrap.min.js"></script>
   <script src="<?= base_url() ?>assets/js/sb-admin-2.js"></script>
@@ -142,8 +146,16 @@
   <script src="<?php echo base_url() ?>assets/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
   <script src="<?php echo base_url() ?>assets/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
   <script>
+
+    function loading() {
+      $("#loading").css('display', 'flex')
+    }
+
     function hutang_save(){
+      $("#loading").css('display', 'flex')
+
       if ($('#nama_brg').val() == '' || $('#harga_beli').val() == '' || $('#harga_jual').val() == '' || $('#jenis_saldo').val() == '') {
+        $("#loading").css('display', 'none')
         alert('Semua input harus diisi!!!')
         return
       }
@@ -156,16 +168,19 @@
         data: $('#form_transaksi').serialize(),
         dataType: "JSON",
         success: function(data) {
+          $("#loading").css('display', 'none')
+          
           if(data.status){
             $('#modal_form').modal('hide');
             $('#form_transaksi').trigger("reset");
-            alert(data.message);  
+            alert(data.message);
           } else {
             $('#modal_form').modal('hide');
             alert(data.message);
           }            
         },
         error: function (jqXHR, textStatus, errorThrown){
+          $("#loading").css('display', 'none')
           console.log(errorThrown)
         }
       });

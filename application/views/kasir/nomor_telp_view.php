@@ -123,6 +123,10 @@
   </div><!-- /.modal -->
   <!-- End Bootstrap modal -->
 
+  <div style="position: absolute; width: 100%; height: 100%; display:none; align-items: center; justify-content: center; left: 0; top: 0; background-color: rgba(0,0,0,0.75);" id="loading">
+    <img style="width: 500px; height: auto" src="<?php echo base_url(); ?>assets/images/loading.gif" />
+  </div>
+
   <script src="<?= base_url() ?>assets/jquery/jquery-3.2.1.min.js"></script>
   <script src="<?= base_url() ?>assets/bootstrap-4.1.3/js/bootstrap.min.js"></script>
   <script src="<?= base_url() ?>assets/js/sb-admin-2.js"></script>
@@ -136,6 +140,8 @@
       var table;
       var lunasiHutangProses = false
       $(document).ready(function(){
+          $("#loading").css('display','flex')
+
           table = $('#tabelBarang').DataTable({
               "columnDefs": [
               {
@@ -143,6 +149,9 @@
                   "orderable": false,
               },
               ],
+              "rowCallback": function( row, data, dataIndex){
+                $("#loading").css('display','none')
+              },
               "order": [],
               "serverSide": true, 
               "ajax": {
@@ -161,6 +170,8 @@
 
        function save()
        {
+          $("#loading").css('display','flex')
+
            var url;
            if(save_method == 'add')
            {
@@ -186,6 +197,8 @@
                    }
                    else
                    {
+                      $("#loading").css('display','none')
+
                        for (var i = 0; i < data.inputerror.length; i++)
                        {
                            //$('[name="'+data.inputerror[i]+'"]').parent().parent().addClass('has-error');
@@ -196,6 +209,8 @@
                },
                error: function (jqXHR, textStatus, errorThrown)
                {
+                  $("#loading").css('display','none')
+
                    console.log("err", errorThrown)
                    alert('error');
                }
@@ -204,6 +219,8 @@
        
        function edit_telp(id)
        {
+          $("#loading").css('display','flex')
+
            save_method = 'update';
            $('#form')[0].reset();
            $.ajax({
@@ -212,6 +229,8 @@
                dataType: "JSON",
                success: function(data)
                {
+                  $("#loading").css('display','none')
+
                    $('[name="id"]').val(data.id);
                    $('[name="nama"]').val(data.nama);
                    $('[name="nomor"]').val(data.nomor);
@@ -220,6 +239,8 @@
                },
                error: function (jqXHR, textStatus, errorThrown)
                {
+                  $("#loading").css('display','none')
+
                    console.log("errorThrown", errorThrown)
                    console.log("textStatus", textStatus)
                    alert('Error get data from ajax');
@@ -230,6 +251,8 @@
        function delete_telp(id)
        {
          if(confirm('yakin ingin di hapus?')){
+              $("#loading").css('display','flex')
+
                $.ajax({
                    url : "<?php echo site_url('option/hapus_telp')?>/"+id,
                    type: "POST",
@@ -241,6 +264,7 @@
                    },
                    error: function (jqXHR, textStatus, errorThrown)
                    {
+                      $("#loading").css('display','none')
                        alert('Error deleting data');
                    }
               });

@@ -94,6 +94,10 @@
     <i class="fas fa-angle-up"></i>
   </a>
 
+  <div style="position: absolute; width: 100%; height: 100%; display:none; align-items: center; justify-content: center; left: 0; top: 0; background-color: rgba(0,0,0,0.75);" id="loading">
+    <img style="width: 500px; height: auto" src="<?php echo base_url(); ?>assets/images/loading.gif" />
+  </div>
+
   <script src="<?= base_url() ?>assets/jquery/jquery-3.2.1.min.js"></script>
   <script src="<?= base_url() ?>assets/bootstrap-4.1.3/js/bootstrap.min.js"></script>
   <script src="<?= base_url() ?>assets/js/sb-admin-2.js"></script>
@@ -106,6 +110,8 @@
   <script>
       var table;
       $(document).ready(function(){
+          $("#loading").css('display','flex')
+
           table = $('#tabelBarang').DataTable({
               "columnDefs": [
               {
@@ -125,6 +131,8 @@
                 if (inputData == currentDate) {
                   $(row).css('backgroundColor', 'rgba(199,249,107, 0.25)')
                 }
+
+                $("#loading").css('display','none')
               },
               "order": [],
               "serverSide": true, 
@@ -149,6 +157,8 @@
       }
 
       function save(){
+          $("#loading").css('display','flex')
+          
           const url = "<?php echo site_url('option/simpan_pemasukan')?>";
            
            $.ajax({
@@ -157,7 +167,8 @@
                data: $('#form').serialize(),
                dataType: "JSON",
                success: function(data){
-                 console.log("data", data)
+                $("#loading").css('display','none')
+                
                    if(data.status){
                        $('#modal_form').modal('hide');
                        reload_table();
@@ -170,6 +181,7 @@
                },
                error: function (jqXHR, textStatus, errorThrown)
                {
+                  $("#loading").css('display','none')
                    alert(textStatus);
                }
            });

@@ -127,6 +127,9 @@
     </div>
   </div>
 
+  <div style="position: absolute; width: 100%; height: 100%; display:none; align-items: center; justify-content: center; left: 0; top: 0; background-color: rgba(0,0,0,0.75);" id="loading">
+    <img style="width: 500px; height: auto" src="<?php echo base_url(); ?>assets/images/loading.gif" />
+  </div>
   
   <script src="<?= base_url() ?>assets/jquery/jquery-3.2.1.min.js"></script>
   <script src="<?= base_url() ?>assets/bootstrap-4.1.3/js/bootstrap.min.js"></script>
@@ -146,6 +149,8 @@
 
       function cek_bulan()
       {
+        $("#loading").css('display','flex')
+
         var bulan = $("#bulan").val();
         var tahun = $("#tahun").val();
         $.ajax({
@@ -154,6 +159,8 @@
             method: "POST",
               success:function(data)
               {
+                  $("#loading").css('display','none')
+
                   var obj=JSON.parse(data);
                   let dataSend = []
 
@@ -219,7 +226,9 @@
               },
               error: function(data)
               {
-                  console.log(data);
+                $("#loading").css('display','none')
+                
+                console.log(data);
               }
         });
       }
@@ -252,11 +261,15 @@
       }
        
       $(function(){
+          $("#loading").css('display','flex')
+
           $.ajax({
               url: "<?php echo base_url(); ?>option/diagram",
               method: "GET",
               success:function(data)
               {
+                  $("#loading").css('display','none')
+                  
                   var obj=JSON.parse(data);
                   console.log("obj", obj)
                   let dataSend = []
@@ -324,7 +337,8 @@
               },
               error: function(data)
               {
-                  console.log(data);
+                $("#loading").css('display','none')
+                console.log(data);
               }
           });
       });
