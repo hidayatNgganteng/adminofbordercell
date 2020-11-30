@@ -489,21 +489,44 @@ class Option extends CI_Controller {
 	}
 	
 	public function update_barang(){
-		$data =[
-			'setatus_barang'	=> $this->input->post('setatus_barang'),
-			'nama_barang' 		=> $this->input->post('nama_barang'),
-			'harga_beli' 		=> $this->input->post('harga_beli'),
-			'harga_jual' 		=> $this->input->post('harga_jual'),
-			'harga_jual_online' 		=> $this->input->post('harga_jual_online'),
-			'harga_jual_reseller' 		=> $this->input->post('harga_jual_reseller'),
-			'deskripsi' 		=> $this->input->post('deskripsi'),
-			'laba' 				=> $this->input->post('harga_jual')-$this->input->post('harga_beli'),
-			'laba_online' 				=> $this->input->post('harga_jual_online')-$this->input->post('harga_beli'),
-			'laba_reseller' 				=> $this->input->post('harga_jual_reseller')-$this->input->post('harga_beli'),
-			'satuan' 			=> $this->input->post('satuan'),
-			'setok' 			=> $this->input->post('setok')
-		];
-		$this->model_barang->update(array('id_barang' => $this->input->post('id')), $data);
+		$oldProd = $this->model_barang->get_by_id($this->input->post('id'));
+
+		if ($oldProd->harga_beli !== $this->input->post('harga_beli')) {
+      $this->model_barang->delete_by_id($this->input->post('id'));
+
+      $data =[
+        'setatus_barang' 	=> $this->input->post('setatus_barang'),
+        'nama_barang' 		=> $this->input->post('nama_barang'),
+        'harga_beli' 		=> $this->input->post('harga_beli'),
+        'harga_jual' 		=> $this->input->post('harga_jual'),
+        'harga_jual_online' 		=> $this->input->post('harga_jual_online'),
+        'harga_jual_reseller' 		=> $this->input->post('harga_jual_reseller'),
+        'deskripsi' 		=> $this->input->post('deskripsi'),
+        'laba' 				=> $this->input->post('harga_jual')-$this->input->post('harga_beli'),
+        'laba_online' 				=> $this->input->post('harga_jual_online')-$this->input->post('harga_beli'),
+        'laba_reseller' 				=> $this->input->post('harga_jual_reseller')-$this->input->post('harga_beli'),
+        'satuan' 			=> $this->input->post('satuan'),
+        'setok' 			=> $this->input->post('setok'),
+      ];
+      $this->model_barang->save($data);      
+		} else {
+			$data =[
+				'setatus_barang'	=> $this->input->post('setatus_barang'),
+				'nama_barang' 		=> $this->input->post('nama_barang'),
+				'harga_beli' 		=> $this->input->post('harga_beli'),
+				'harga_jual' 		=> $this->input->post('harga_jual'),
+				'harga_jual_online' 		=> $this->input->post('harga_jual_online'),
+				'harga_jual_reseller' 		=> $this->input->post('harga_jual_reseller'),
+				'deskripsi' 		=> $this->input->post('deskripsi'),
+				'laba' 				=> $this->input->post('harga_jual')-$this->input->post('harga_beli'),
+				'laba_online' 				=> $this->input->post('harga_jual_online')-$this->input->post('harga_beli'),
+				'laba_reseller' 				=> $this->input->post('harga_jual_reseller')-$this->input->post('harga_beli'),
+				'satuan' 			=> $this->input->post('satuan'),
+				'setok' 			=> $this->input->post('setok')
+			];
+			$this->model_barang->update(array('id_barang' => $this->input->post('id')), $data);
+		}
+
 		echo json_encode(array("status" => TRUE));
   }
 

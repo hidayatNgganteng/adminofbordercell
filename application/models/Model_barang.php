@@ -12,6 +12,7 @@ class Model_barang extends CI_Model {
 		$this->_get_datatables_query();
 		if($_POST['length'] != -1)
 		$this->db->limit($_POST['length'], $_POST['start']);
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get();
 		return $query->result();
 	}
@@ -22,6 +23,7 @@ class Model_barang extends CI_Model {
 		if($_POST['length'] != -1)
 		$this->db->limit($_POST['length'], $_POST['start']);
 		$this->db->where('setok', '0');
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get();
 		return $query->result();
 	}
@@ -33,6 +35,7 @@ class Model_barang extends CI_Model {
 		$this->db->limit($_POST['length'], $_POST['start']);
 		$this->db->where('setok >', '0');
 		$this->db->where('setok <=', '2');
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get();
 		return $query->result();
 	}
@@ -66,6 +69,7 @@ class Model_barang extends CI_Model {
 	function count_filtered()
 	{
 		$this->_get_datatables_query();
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get();
 		return $query->num_rows();
 	}
@@ -74,6 +78,7 @@ class Model_barang extends CI_Model {
 	{
 		$this->_get_datatables_query();
 		$this->db->where('setok', '0');
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get();
 		return $query->num_rows();
 	}
@@ -82,6 +87,7 @@ class Model_barang extends CI_Model {
 	{
 		$this->_get_datatables_query();
 		$this->db->where('setok', '1');
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get();
 		return $query->num_rows();
 	}
@@ -89,6 +95,7 @@ class Model_barang extends CI_Model {
 	public function count_all()
 	{
 		$this->db->from($this->table);
+		$this->db->where('isExpired =', '0');
 		return $this->db->count_all_results();
 	}
 
@@ -96,6 +103,7 @@ class Model_barang extends CI_Model {
 	{
 		$this->_get_datatables_query();
 		$this->db->where('setok', '0');
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get();
 		return $query->num_rows();
 	}
@@ -104,6 +112,7 @@ class Model_barang extends CI_Model {
 	{
 		$this->_get_datatables_query();
 		$this->db->where('setok', '1');
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get();
 		return $query->num_rows();
 	}
@@ -116,8 +125,9 @@ class Model_barang extends CI_Model {
 	
 	public function delete_by_id($id)
 	{
-		$this->db->where('id_barang', $id);
-		return $this->db->delete($this->table);
+		$data = [ 'isExpired' => 1 ];
+		$this->db->update($this->table, $data, array('id_barang' => $id));
+		return $this->db->affected_rows();
 	}
 	
 	public function get_by_id($id)
@@ -139,6 +149,7 @@ class Model_barang extends CI_Model {
 		$this->db->select('*');
 		$this->db->like('nama_barang', $key);
 		$this->db->or_like('id_barang', $key);
+		$this->db->where('isExpired =', '0');
 		$query = $this->db->get('barang');
 		if($query->num_rows() > 0)
 		{
@@ -153,12 +164,6 @@ class Model_barang extends CI_Model {
 	function insert_penjualan($data)
 	{
 		return $this->db->insert('penjualan',$data);
-		// $insert = $this->db->insert('penjualan',$data);
-		// if($insert){
-		// 	echo('berhasil');
-		// }else{
-		// 	echo('gagal');
-		// }
 	}
 	
 	function update_setok($id,$qty)
