@@ -118,79 +118,126 @@ class Option extends CI_Controller {
   }
 
   public function save_produk_elektrik(){
+    $post_jenis_saldo = $this->input->post('jenis_saldo');
+    $post_pembayaran = $this->input->post('pembayaran');
+    $post_harga_beli = $this->input->post('harga_beli');
+    $post_harga_jual = $this->input->post('harga_jual');
+    $post_nama_brg = $this->input->post('nama_brg');
+
     $this->load->library('session'); 
     $this->load->model('model_saldo');
+    $this->load->model('model_hutang');
 
-	$jenis_saldo = $this->input->post('jenis_saldo');
-	$data_saldo = 0;
-	if ($jenis_saldo == 'mitra') {
-		$data_saldo = $this->model_saldo->getSaldoMitra();
-	} else if ($jenis_saldo == 'orderkuota') {
-		$data_saldo = $this->model_saldo->getSaldoOrderKuota();
-	} else if ($jenis_saldo == 'isimple') {
-		$data_saldo = $this->model_saldo->getSaldoISimple();
-	} else if ($jenis_saldo == 'rita') {
-		$data_saldo = $this->model_saldo->getSaldoRita();
-	} else {
-		$data_saldo = $this->model_saldo->getSaldoDigipos();
-	}
+    $jenis_saldo = $post_jenis_saldo;
+    $data_saldo = 0;
+    if ($jenis_saldo == 'mitra') {
+      $data_saldo = $this->model_saldo->getSaldoMitra();
+    } else if ($jenis_saldo == 'orderkuota') {
+      $data_saldo = $this->model_saldo->getSaldoOrderKuota();
+    } else if ($jenis_saldo == 'isimple') {
+      $data_saldo = $this->model_saldo->getSaldoISimple();
+    } else if ($jenis_saldo == 'rita') {
+      $data_saldo = $this->model_saldo->getSaldoRita();
+    } else {
+      $data_saldo = $this->model_saldo->getSaldoDigipos();
+    }
 
-    if ($this->input->post('harga_beli') > $data_saldo->saldo) {
+    if ($post_harga_beli > $data_saldo->saldo) {
       $this->session->set_flashdata('error', "Saldo ".$jenis_saldo." anda tidak mencukupi!!");
       $this->load->view('kasir/kasir_elektrik_view');
-    } else if ($this->input->post('harga_beli') > $this->input->post('harga_jual')) {
+    } else if ($post_harga_beli > $post_harga_jual) {
       $this->session->set_flashdata('error', "Harga beli tidak boleh lebih dari harga jual!!");
       $this->load->view('kasir/kasir_elektrik_view');
     } else {
-      $datestring = '%H:%i';
-      $time 		= time();
-      $waktu 		= mdate($datestring, $time);
 
-      $data =[
-        'kasir' => 0,
-        'kode_brg' => 0,
-        'nama_brg' 	    => $this->input->post('nama_brg'),
-        'harga_beli_elektrik' 		=> $this->input->post('harga_beli'),
-        'harga_brg' 		=> $this->input->post('harga_jual'),
-        'jumlah' 		=> 1,
-        'total_harga' 		=>  $this->input->post('harga_jual'),
-        'tgl_transaksi' => date('Y-m-d'),
-        'waktu' 			  => $waktu,
-        'type_product' => 'elektrik'
-      ];
-      
+      if ($post_pembayaran === 'cash') {
+        // insert penjualan
+        $datestring = '%H:%i';
+        $time 		= time();
+        $waktu 		= mdate($datestring, $time);
+
+        $data =[
+          'kasir' => 0,
+          'kode_brg' => 0,
+          'nama_brg' 	    => $post_nama_brg,
+          'harga_beli_elektrik' 		=> $post_harga_beli,
+          'harga_brg' 		=> $post_harga_jual,
+          'jumlah' 		=> 1,
+          'total_harga' 		=>  $post_harga_jual,
+          'tgl_transaksi' => date('Y-m-d'),
+          'waktu' 			  => $waktu,
+          'type_product' => 'elektrik'
+        ];
+
+        $this->model_barang->insert_penjualan($data);
+
+
+        // kurangi saldo
+        $datasaldo =[ 'saldo' => $data_saldo->saldo - $post_harga_beli ];
+        $id_saldo = 0;
+        if ($jenis_saldo == 'mitra') {
+          $id_saldo = 0;
+        } else if ($jenis_saldo == 'orderkuota') {
+          $id_saldo = 1;
+        } else if ($jenis_saldo == 'isimple') {
+          $id_saldo = 3;
+        } else if ($jenis_saldo == 'rita') {
+          $id_saldo = 4;
+        } else {
+          $id_saldo = 2;
+        }
+
+        $this->model_saldo->update(array('id' => $id_saldo), $datasaldo);
+
+        
+        // tambah saldo fisik
+        $this->ubah_saldo_fisik('tambah', $post_harga_jual);
+
+
+        // input ke pemasukan
+        $this->load->model('model_io');
+        $dataPemasukan =[
+          'nama' 		=> 'PENJUALAN: '.$post_nama_brg,
+          'nominal' 		=> $post_harga_jual,
+          'date' => date('Y-m-d'),
+          'time' => $waktu
+        ];
+        $this->model_io->save($dataPemasukan);
+      } else {
+        $datestring = '%H:%i';
+        $time 		= time();
+        $waktu 		= mdate($datestring, $time);
+
+        $data =[
+          'nama_brg' 	    => $post_nama_brg,
+          'harga_beli' 		=> $post_harga_beli,
+          'harga_jual' 		=> $post_harga_jual,
+          'date'          => date('Y-m-d'),
+          'time' 			  => $waktu
+        ];
+
+        // insert ke tabel hutang
+        $this->model_hutang->insert_hutang($data);
+
+        // kurangi saldo
+        $datasaldo =[ 'saldo' => $data_saldo->saldo - $post_harga_beli ];
+        $id_saldo = 0;
+        if ($jenis_saldo == 'mitra') {
+          $id_saldo = 0;
+        } else if ($jenis_saldo == 'orderkuota') {
+          $id_saldo = 1;
+        } else if ($jenis_saldo == 'isimple') {
+          $id_saldo = 3;
+        } else if ($jenis_saldo == 'rita') {
+          $id_saldo = 4;
+        } else {
+          $id_saldo = 2;
+        }
+
+        $this->model_saldo->update(array('id' => $id_saldo), $datasaldo);
+      }
+
       $this->session->set_flashdata('success', "Produk tersimpan : )");
-      $this->model_barang->insert_penjualan($data);
-
-      // kurangi saldo
-	  $datasaldo =[ 'saldo' => $data_saldo->saldo - $this->input->post('harga_beli') ];
-	  $id_saldo = 0;
-	  if ($jenis_saldo == 'mitra') {
-		$id_saldo = 0;
-	  } else if ($jenis_saldo == 'orderkuota') {
-		$id_saldo = 1;
-	  } else if ($jenis_saldo == 'isimple') {
-		$id_saldo = 3;
-	  } else if ($jenis_saldo == 'rita') {
-		$id_saldo = 4;
-	  } else {
-		$id_saldo = 2;
-	  }
-	    $this->model_saldo->update(array('id' => $id_saldo), $datasaldo);
-	  
-      // tambah saldo fisik
-      $this->ubah_saldo_fisik('tambah', $this->input->post('harga_jual'));
-
-      // input ke pemasukan
-      $this->load->model('model_io');
-			$dataPemasukan =[
-				'nama' 		=> 'PENJUALAN: '.$this->input->post('nama_brg'),
-				'nominal' 		=> $this->input->post('harga_jual'),
-				'date' => date('Y-m-d'),
-				'time' => $waktu
-			];
-			$this->model_io->save($dataPemasukan);
-
       $this->load->view('kasir/kasir_elektrik_view');
     }
   }  
@@ -381,7 +428,7 @@ class Option extends CI_Controller {
     ]);
   }
 
-  public function lunasi_hutang($id){
+  public function lunasi_hutang_cash($id){
     $this->load->model('model_hutang');
 
     // update status di tabel hutang
@@ -420,6 +467,132 @@ class Option extends CI_Controller {
     $dataPemasukan =[
       'nama' 		=> 'PENJUALAN: '.$data_hutang->nama_brg,
       'nominal' 		=> $data_hutang->harga_jual,
+      'date' => date('Y-m-d'),
+      'time' => $waktu
+    ];
+    $this->model_io->save($dataPemasukan);
+
+    echo json_encode([ "status" => TRUE ]);
+  }
+
+  public function lunasi_hutang_transfer($id){
+    $this->load->model('model_hutang');
+
+    // update status di tabel hutang
+    $data =[ 'status' 	    => 'lunas' ];
+    $this->model_hutang->update(array('id_hutang_elektrik' => $id), $data);
+
+    $data_hutang = $this->model_hutang->get_by_id($id);
+    
+    // insert ke penjualan
+    $datestring = '%H:%i';
+    $time 		= time();
+    $waktu 		= mdate($datestring, $time);
+
+    $data_penjualan =[
+      'kasir' => 0,
+      'kode_brg' => 0,
+      'nama_brg' 	    => $data_hutang->nama_brg,
+      'harga_beli_elektrik' 		=> $data_hutang->harga_beli,
+      'harga_brg' 		=> $data_hutang->harga_jual,
+      'jumlah' 		=> 1,
+      'total_harga' 		=>  $data_hutang->harga_jual,
+      'tgl_transaksi' => date('Y-m-d'),
+      'waktu' 			  => $waktu,
+      'type_product' => 'elektrik'
+    ];
+    
+    $this->model_barang->insert_penjualan($data_penjualan);
+
+    // input ke pemasukan
+    $this->load->model('model_io');
+    $dataPemasukan =[
+      'nama' 		=> 'PENJUALAN: '.$data_hutang->nama_brg,
+      'nominal' 		=> $data_hutang->harga_jual,
+      'date' => date('Y-m-d'),
+      'time' => $waktu
+    ];
+    $this->model_io->save($dataPemasukan);
+
+    echo json_encode([ "status" => TRUE ]);
+  }
+
+  public function lunasi_hutang_produk_cash($id){
+    $this->load->model('model_hutang');
+
+    // update status di tabel hutang
+    $data =[ 'status' 	    => 'lunas' ];
+    $this->model_hutang->update_produk(array('id_hutang_produk' => $id), $data);
+
+    $data_hutang = $this->model_hutang->get_by_id_produk($id);
+    
+    // insert ke penjualan
+    $datestring = '%H:%i';
+    $time 		= time();
+    $waktu 		= mdate($datestring, $time);
+
+    $data_penjualan =[
+      'kode_brg' => $data_hutang->kode_brg,
+      'jumlah' => $data_hutang->quantity,
+      'nama_brg' 	    => $data_hutang->nama_brg.' - '.$data_hutang->peminjam,
+      'harga_brg' 		=> $data_hutang->harga_brg,
+      'total_harga' 		=>  $data_hutang->total_harga,
+      'tgl_transaksi' => date('Y-m-d'),
+      'waktu' 			  => $waktu
+    ];
+    
+    $this->model_barang->insert_penjualan($data_penjualan);
+
+
+    // tambah saldo fisik
+    $this->ubah_saldo_fisik('tambah', $data_hutang->total_harga);
+
+    
+    // input ke pemasukan
+    $this->load->model('model_io');
+    $dataPemasukan =[
+      'nama' 		=> 'PENJUALAN: '.$data_hutang->nama_brg.' - '.$data_hutang->peminjam,
+      'nominal' 		=> $data_hutang->total_harga,
+      'date' => date('Y-m-d'),
+      'time' => $waktu
+    ];
+    $this->model_io->save($dataPemasukan);
+
+    echo json_encode([ "status" => TRUE ]);
+  }
+
+  public function lunasi_hutang_produk_transfer($id){
+    $this->load->model('model_hutang');
+
+    // update status di tabel hutang
+    $data =[ 'status' 	    => 'lunas' ];
+    $this->model_hutang->update_produk(array('id_hutang_produk' => $id), $data);
+
+    $data_hutang = $this->model_hutang->get_by_id_produk($id);
+    
+    // insert ke penjualan
+    $datestring = '%H:%i';
+    $time 		= time();
+    $waktu 		= mdate($datestring, $time);
+
+    $data_penjualan =[
+      'kode_brg' => $data_hutang->kode_brg,
+      'jumlah' => $data_hutang->quantity,
+      'nama_brg' 	    => $data_hutang->nama_brg.' - '.$data_hutang->peminjam,
+      'harga_brg' 		=> $data_hutang->harga_brg,
+      'total_harga' 		=>  $data_hutang->total_harga,
+      'tgl_transaksi' => date('Y-m-d'),
+      'waktu' 			  => $waktu
+    ];
+    
+    $this->model_barang->insert_penjualan($data_penjualan);
+
+    
+    // input ke pemasukan
+    $this->load->model('model_io');
+    $dataPemasukan =[
+      'nama' 		=> 'PENJUALAN: '.$data_hutang->nama_brg.' - '.$data_hutang->peminjam,
+      'nominal' 		=> $data_hutang->total_harga,
       'date' => date('Y-m-d'),
       'time' => $waktu
     ];
@@ -906,50 +1079,125 @@ public function update_ppob(){
 	public function shoping(){
 		$datestring = '%H:%i';
 		$time 		= time();
-		$waktu 		= mdate($datestring, $time);
-		$harga = str_replace('.', '', $this->input->post('harga'));
-		$quantity = $this->input->post('qty');
+    $waktu 		= mdate($datestring, $time);
+
+    // post
+    $post_typePenjualan = $this->input->post('type_penjualan');
+    $post_pembayaran = $this->input->post('pembayaran');
+    $post_peminjam = $this->input->post('peminjam');
+    $post_id = $this->input->post('id');
+    $post_nama = $this->input->post('nama');
+    $post_harga = $this->input->post('harga');
+    $post_quantity = $this->input->post('qty');
+    
+    $data = [
+      'kode_brg' => $post_id,
+      'jumlah' => $post_quantity,
+      'nama_brg' => $post_nama,
+      'harga_brg' => $post_harga,
+      'total_harga' => $post_harga * $post_quantity,
+      'tgl_transaksi' => date('Y-m-d'),
+      'type_penjualan' => $post_typePenjualan,
+      'waktu' => $waktu
+    ];
 		
-		$data = [
-			'kode_brg' => $this->input->post('id'),
-			'jumlah' => $quantity,
-			'nama_brg' => $this->input->post('nama'),
-			'harga_brg' => $harga,
-			'total_harga' => $harga * $quantity,
-			'tgl_transaksi' => date('Y-m-d'),
-			'type_penjualan' => $this->input->post('type_penjualan'),
-			'waktu' => $waktu
-		];
+		if ($post_typePenjualan === 'offline') {
+      if ($post_pembayaran === 'cash') {
+        // inser penjualan
+        $insert =  $this->model_barang->insert_penjualan($data);
 
-		$insert =  $this->model_barang->insert_penjualan($data);
-		
-		if($insert){
-			$hasil = $this->model_barang->get_setok($this->input->post('id'));
-			$sisa =  $hasil->setok;
-			$qty = $sisa-$quantity;
-			$aksi = $this->model_barang->update_setok($this->input->post('id'),$qty);
+        // update stok
+        $hasil = $this->model_barang->get_setok($post_id);
+        $sisa =  $hasil->setok;
+        $qty = $sisa-$post_quantity;
+        $this->model_barang->update_setok($post_id,$qty);
+        
+        // tambah saldo fisik
+        $this->ubah_saldo_fisik('tambah', $post_quantity * $post_harga);
 
+        // input brg ke pemasukan
+        $this->load->model('model_io');
+        $brg = $this->model_barang->get_by_id($post_id);
+        $dataPemasukan =[
+          'nama' 		=> 'PENJUALAN: '.$brg->nama_barang,
+          'nominal' 		=> $post_quantity * $post_harga,
+          'date' => date('Y-m-d'),
+          'time' => $waktu
+        ];
+        $this->model_io->save($dataPemasukan);
 
-			$brg = $this->model_barang->get_by_id($this->input->post('id'));
-			
-			// tambah saldo fisik
-			$this->ubah_saldo_fisik('tambah', $quantity * $harga);
+        redirect('/');
 
-			// input brg ke pemasukan
-			$this->load->model('model_io');
-			$dataPemasukan =[
-				'nama' 		=> 'PENJUALAN: '.$brg->nama_barang,
-				'nominal' 		=> $quantity * $harga,
-				'date' => date('Y-m-d'),
-				'time' => $waktu
-			];
-			$this->model_io->save($dataPemasukan);
+      } else if ($post_pembayaran === 'transfer') {
+        // inser penjualan
+        $insert =  $this->model_barang->insert_penjualan($data);
 
-			redirect('/');
-		}else{
-			echo json_encode(["status" => FALSE]);
+        // update stok
+        $hasil = $this->model_barang->get_setok($post_id);
+        $sisa =  $hasil->setok;
+        $qty = $sisa-$post_quantity;
+        $this->model_barang->update_setok($post_id,$qty);
+
+        // input brg ke pemasukan
+        $this->load->model('model_io');
+        $brg = $this->model_barang->get_by_id($post_id);
+        $dataPemasukan =[
+          'nama' 		=> 'PENJUALAN: '.$brg->nama_barang,
+          'nominal' 		=> $post_quantity * $post_harga,
+          'date' => date('Y-m-d'),
+          'time' => $waktu
+        ];
+        $this->model_io->save($dataPemasukan);
+
+        redirect('/');
+      } else {
+        // insert ke tabel hutang
+        $dataHutang = [
+          'kode_brg' => $post_id,
+          'peminjam' => $post_peminjam,
+          'quantity' => $post_quantity,
+          'nama_brg' => $post_nama,
+          'harga_brg' => $post_harga,
+          'total_harga' => $post_harga * $post_quantity,
+          'tgl_transaksi' => date('Y-m-d'),
+          'waktu' => $waktu,
+          'status' => 'hutang'
+        ];
+        $this->load->model('model_hutang');
+        $this->model_hutang->insert_hutang_produk($dataHutang);
+
+        // update stok
+        $hasil = $this->model_barang->get_setok($post_id);
+        $sisa =  $hasil->setok;
+        $qty = $sisa-$post_quantity;
+        $this->model_barang->update_setok($post_id,$qty);
+
+        redirect('/');
+      }
+		} else {
+      // inser penjualan
+      $insert =  $this->model_barang->insert_penjualan($data);
+
+      // update stok
+      $hasil = $this->model_barang->get_setok($post_id);
+      $sisa =  $hasil->setok;
+      $qty = $sisa-$post_quantity;
+      $this->model_barang->update_setok($post_id,$qty);
+
+      // input brg ke pemasukan
+      $this->load->model('model_io');
+      $brg = $this->model_barang->get_by_id($post_id);
+      $dataPemasukan =[
+        'nama' 		=> 'PENJUALAN: '.$brg->nama_barang,
+        'nominal' 		=> $post_quantity * $post_harga,
+        'date' => date('Y-m-d'),
+        'time' => $waktu
+      ];
+      $this->model_io->save($dataPemasukan);
+
+      redirect('/');
 		}
-	}
+  }
 	
 	public function deletebarang($rowid){
 		$this->cart->update([
@@ -964,6 +1212,10 @@ public function update_ppob(){
   
   public function data_hutang(){
 		$this->load->view('kasir/hutang_view');
+  }
+  
+  public function data_hutang_produk(){
+		$this->load->view('kasir/hutang_view_produk');
 	}
 
 	public function menabung(){
@@ -1076,7 +1328,10 @@ public function update_ppob(){
       $row[] = $barang->status;
 
       if($barang->status == 'hutang'){
-				$row[] = '<button class="btn btn-sm btn-warning" onclick="lunasi_hutang('."'".$barang->id_hutang_elektrik."'".')">Lunasi</button>';
+        $row[] = '
+          <button class="btn btn-sm btn-warning" onclick="lunasi_hutang_cash('."'".$barang->id_hutang_elektrik."'".')">Lunasi cash</button>
+          <button class="btn btn-sm btn-success" onclick="lunasi_hutang_transfer('."'".$barang->id_hutang_elektrik."'".')">Lunasi transfer</button>
+        ';
 			}else{
 				$row[] = '<button class="btn btn-sm btn-info disabled">Sudah Lunas</button>';
 			}
@@ -1093,9 +1348,53 @@ public function update_ppob(){
 		echo json_encode($output);
   }
 
+  public function get_hutang_produk(){
+    $this->load->model('model_hutang');
+		$list = $this->model_hutang->get_datatables_produk();
+		$data = [];
+		$no = $_POST['start'];
+		$n=0;
+
+		foreach ($list as $barang) {
+			$n++;
+			$row = [];
+      $row[] = $n;
+      $row[] = $barang->peminjam;
+			$row[] = $barang->nama_brg;
+			$row[] = $barang->total_harga;
+      $row[] = $barang->tgl_transaksi.' '.$barang->waktu;
+      $row[] = $barang->status;
+
+      if($barang->status == 'hutang'){
+        $row[] = '
+        <button class="btn btn-sm btn-warning" onclick="lunasi_hutang_produk_cash('."'".$barang->id_hutang_produk."'".')">Lunasi Cash</button>
+        <button class="btn btn-sm btn-success" onclick="lunasi_hutang_produk_transfer('."'".$barang->id_hutang_produk."'".')">Lunasi Transfer</button>
+        ';
+			}else{
+				$row[] = '<button class="btn btn-sm btn-info disabled">Sudah Lunas</button>';
+			}
+
+			$data[] = $row;
+		}
+		
+		$output = [
+			"draw" => $_POST['draw'],
+			"recordsTotal" => $this->model_hutang->count_all_produk(),
+			"recordsFiltered" => $this->model_hutang->count_filtered_produk(),
+			"data" => $data,
+		];
+		echo json_encode($output);
+  }
+
   public function get_total_hutang(){
     $this->load->model('model_hutang');
 	$hutang = $this->model_hutang->get_total_hutang();	
+	echo json_encode($hutang);
+  }
+
+  public function get_total_hutang_produk(){
+    $this->load->model('model_hutang');
+	$hutang = $this->model_hutang->get_total_hutang_produk();	
 	echo json_encode($hutang);
   }
 

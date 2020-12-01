@@ -74,12 +74,12 @@
                 <div class="row">
                     <div class="col-sm-12 col-md-6 ">
 
-                        <form class="form-horizontal" action="<?= site_url() ?>option/shoping" method="post" id="form_transaksi" role="form">
+                        <form class="form-horizontal" name="input_form" onsubmit="return validateForm()" action="<?= site_url() ?>option/shoping" method="post" id="form_transaksi" role="form">
 
                           <div class="form-group row">
                             <label class="col-md-3 col-form-label"> Type penjualan</label>
                               <div class="col-md-9">
-                                <select required class="form-control" name="type_penjualan" id="type_penjualan">
+                                <select class="form-control" name="type_penjualan" id="type_penjualan">
                                   <option value="" selected>Pilih dulu coy!</option>
                                   <option value="offline">Offline</option>
                                   <option value="online">Online</option>
@@ -88,31 +88,50 @@
                               </div>
                           </div>
 
+                          <div class="form-group row" style="display: none" id="box_pembayaran">
+                            <label class="col-md-3 col-form-label"> Pembayaran</label>
+                              <div class="col-md-9">
+                                <select class="form-control" name="pembayaran" id="pembayaran">
+                                  <option value="cash">Cash</option>
+                                  <option value="transfer">Transfer</option>
+                                  <option value="hutang">Hutang</option>
+                                </select>
+                              </div>
+                          </div>
+
+                          <div class="form-group row" style="display: none" id="box_peminjam">
+                            <label class="col-md-3 col-form-label"> Peminjam</label>
+                              <div class="col-md-9">
+                                <input class="form-control reset" type="text" id="peminjam" name="peminjam" placeholder="peminjam" >
+                              </div>
+                          </div>
+
                             <div class="form-group row">
-                              <label class="col-md-3 col-form-label">id/nama (f2)</label>
+                              <label class="col-md-3 col-form-label">Nama Produk</label>
                                 <div class="col-md-9">
-                                  <input class="form-control reset" id="pencarian" readonly  name="id" type="text" placeholder="id / nama" >
+                                  <input class="form-control reset" id="pencarian" readonly  name="id" type="text" placeholder="cari produk" >
                                 </div>
                             </div>
                             
                             <div class="form-group row">
-                              <label class="col-md-3 col-form-label"> nama</label>
+                              <label class="col-md-3 col-form-label"></label>
                                 <div class="col-md-9">
-                                  <input class="form-control reset" type="text" id="nama_barang" name="nama" readonly="" placeholder="nama" >
+                                  <input class="form-control reset" type="text" id="nama_barang" name="nama" readonly="" placeholder="" >
                                 </div>
                             </div>
                             
                             <div class="form-group row">
-                              <label class="col-md-3 col-form-label"> harga</label>
+                              <label class="col-md-3 col-form-label"> Harga jual</label>
                                 <div class="col-md-9">
                                   <input class="form-control reset" type="text" name="harga" id="harga"  readonly="" placeholder="0"value="">
+                                  <p style="color: red; font; font-style: italic; margin-top: 10px">Jika harga belum sesuai, silahkan disesuaikan!</p>
                                 </div>
                             </div>
                                 
                             <div class="form-group row">
-                              <label class="col-md-3 col-form-label">qty</label>
+                              <label class="col-md-3 col-form-label">Quantity</label>
                                 <div class="col-md-9">
-                                  <input class="form-control reset" type="number" readonly="readonly" id="qty" min="0" name="qty" placeholder="qty">
+                                  <input class="form-control reset" type="number" readonly="readonly" id="qty" min="0" name="qty" placeholder="quantity">
                                 </div>
                             </div>
 
@@ -155,34 +174,84 @@
           $("#type_penjualan").change(function() {
             if ($(this).val() == '') {
               $("#pencarian").attr('readonly', true).val('')
-              $("#nama_barang").attr('readonly', true).val('')
               $("#harga").attr('readonly', true).val('')
               $("#qty").attr('readonly', true).val('')
+              $("#box_pembayaran").css('display', 'none')
             } else {
               $("#pencarian").attr('readonly', false).val('')
-              $("#nama_barang").attr('readonly', false).val('')
               $("#harga").attr('readonly', false).val('')
               $("#qty").attr('readonly', false).val('')
+
+              if ($(this).val() === 'offline') {
+                $("#box_pembayaran").css('display', 'flex')
+              } else {
+                $("#box_pembayaran").css('display', 'none')
+                $("#box_peminjam").css('display', 'none')
+              }
             }
           })
-          
-          $("#selesai").click(function() {
-            $("#loading").css('display','flex')
+
+          $("#pembayaran").change(function() {
+            if ($(this).val() === 'hutang') {
+              $("#box_peminjam").css('display', 'flex')
+            } else {
+              $("#box_peminjam").css('display', 'none')
+            }
           })
        });
+
+       function validateForm() {
+          var type_penjualan = document.forms["input_form"]["type_penjualan"].value;
+          var pembayaran = document.forms["input_form"]["pembayaran"].value;
+          var peminjam = document.forms["input_form"]["peminjam"].value;
+          var id = document.forms["input_form"]["id"].value;
+          var nama = document.forms["input_form"]["nama"].value;
+          var harga = document.forms["input_form"]["harga"].value;
+          var qty = document.forms["input_form"]["qty"].value;
+
+          if (type_penjualan === "") {
+            alert("Semua input harus diisi");
+            return false;
+          } else {
+            if (type_penjualan === "offline") {
+              if (pembayaran === 'hutang') {
+                if (id === '' || nama === '' || harga === '' || qty === '' || peminjam === '') {
+                  alert("Semua input harus diisi");
+                  return false;
+                } else {
+                  $("#loading").css('display','flex')
+                }
+              } else {
+                if (id === '' || nama === '' || harga === '' || qty === '') {
+                  alert("Semua input harus diisi");
+                  return false;
+                } else {
+                  $("#loading").css('display','flex')
+                }
+              }
+            } else {
+              if (id === '' || nama === '' || harga === '' || qty === '') {
+                alert("Semua input harus diisi");
+                return false;
+              } else {
+                $("#loading").css('display','flex')
+              }
+            }
+          }
+        }
        
        function reload_table(){
            table.ajax.reload(null,false);
        }
     	
-      function convertToRupiah(angka)
-      {
-          var rupiah = '';
-          var angkarev = angka.toString().split('').reverse().join('');
-          for(var i = 0; i < angkarev.length; i++)
-          if(i%3 == 0) rupiah += angkarev.substr(i,3)+'.';
-          return rupiah.split('',rupiah.length-1).reverse().join('');
-      }
+      // function convertToRupiah(angka)
+      // {
+      //     var rupiah = '';
+      //     var angkarev = angka.toString().split('').reverse().join('');
+      //     for(var i = 0; i < angkarev.length; i++)
+      //     if(i%3 == 0) rupiah += angkarev.substr(i,3)+'.';
+      //     return rupiah.split('',rupiah.length-1).reverse().join('');
+      // }
        
        $(function(){
             $("#pencarian").autocomplete({
@@ -210,11 +279,11 @@
                     $("#nama_barang").val(nama);
                     
                     if (typePenjualan == 'offline') {
-                      $("#harga").val(convertToRupiah(ui.item.harga_jual));
+                      $("#harga").val(ui.item.harga_jual);
                     } else if (typePenjualan == 'online') {
-                      $("#harga").val(convertToRupiah(ui.item.harga_jual_online));
+                      $("#harga").val(ui.item.harga_jual_online);
                     } else {
-                      $("#harga").val(convertToRupiah(ui.item.harga_jual_reseller));
+                      $("#harga").val(ui.item.harga_jual_reseller);
                     }
 
                     $('#qty').removeAttr("readonly");

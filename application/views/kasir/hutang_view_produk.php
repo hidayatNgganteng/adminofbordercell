@@ -45,7 +45,7 @@
           <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
             <i class="fa fa-bars"></i>
           </button>
-          <div class="h3 ml-auto">Daftar hutang digital</div>
+          <div class="h3 ml-auto">Daftar hutang produk</div>
 
           <?php $this->load->view('kasir/menu_kanan') ?>
         </nav>
@@ -58,12 +58,12 @@
 				<thead>
 					<tr>
 						<th>no</th>
-						<th>Nama</th>
-            <th>Harga beli</th>
-						<th>Harga Jual</th>
+                        <th>Peminjam</th>
+						<th>Nama brg</th>
+                        <th>Jumlah</th>
 						<th>Waktu</th>
-            <th>Status</th>
-            <th>Aksi</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -133,7 +133,7 @@
               "order": [],
               "serverSide": true, 
               "ajax": {
-                  "url": "<?php echo base_url(); ?>option/get_hutang",
+                  "url": "<?php echo base_url(); ?>option/get_hutang_produk",
                   "type": "POST"
                   },
               "lengthChange": false,
@@ -142,7 +142,7 @@
 
             // get total hutang yang belum lunas
             $.ajax({
-              url : "<?php echo site_url('option/get_total_hutang') ?>",
+              url : "<?php echo site_url('option/get_total_hutang_produk') ?>",
               type: "GET",
               dataType: "JSON",
               success: function(data){
@@ -161,12 +161,12 @@
            table.ajax.reload(null,false);
        }
 
-       function lunasi_hutang_cash(idHutang) {
+       function lunasi_hutang_produk_cash(idHutang) {
         if (!lunasiHutangProses) {
           $("#loading").css('display','flex')
 
           lunasiHutangProses = true
-          var url = "<?php echo site_url('option/lunasi_hutang_cash/') ?>" + idHutang;
+          var url = "<?php echo site_url('option/lunasi_hutang_produk_cash/') ?>" + idHutang;
           
           $.ajax({
             url : url,
@@ -194,12 +194,12 @@
         
        }
 
-       function lunasi_hutang_transfer(idHutang) {
+       function lunasi_hutang_produk_transfer(idHutang) {
         if (!lunasiHutangProses) {
           $("#loading").css('display','flex')
 
           lunasiHutangProses = true
-          var url = "<?php echo site_url('option/lunasi_hutang_transfer/') ?>" + idHutang;
+          var url = "<?php echo site_url('option/lunasi_hutang_produk_transfer/') ?>" + idHutang;
           
           $.ajax({
             url : url,

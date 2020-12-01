@@ -81,32 +81,42 @@
             <div class="row">
               <div class="col-sm-12 col-md-6 ">
 
-                  <form class="form-horizontal" id="form_transaksi" role="form" method="post" action="<?= site_url() ?>option/save_produk_elektrik">
+                  <form class="form-horizontal" id="form_transaksi" role="form" method="post" action="<?= site_url() ?>option/save_produk_elektrik" name="input_form" onsubmit="return validateForm()">
                     <div class="form-group row">
                       <label class="col-md-3 col-form-label"> Nama Produk</label>
                         <div class="col-md-9">
-                          <input required class="form-control reset" type="text" id="nama_brg" name="nama_brg" placeholder="nama" >
+                          <input class="form-control reset" type="text" id="nama_brg" name="nama_brg" placeholder="nama" >
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                      <label class="col-md-3 col-form-label"> Pembayaran</label>
+                        <div class="col-md-9">
+                          <select class="form-control" name="pembayaran" id="pembayaran">
+                            <option value="cash">Cash</option>
+                            <option value="hutang">Hutang</option>
+                          </select>
                         </div>
                     </div>
                     
                     <div class="form-group row">
                       <label class="col-md-3 col-form-label"> Harga beli</label>
                         <div class="col-md-9">
-                          <input required class="form-control reset" type="text" name="harga_beli" id="harga_beli"  placeholder="0">
+                          <input class="form-control reset" type="text" name="harga_beli" id="harga_beli"  placeholder="0">
                         </div>
                     </div>
 
                     <div class="form-group row">
                       <label class="col-md-3 col-form-label"> Harga jual</label>
                         <div class="col-md-9">
-                          <input required class="form-control reset" type="text" name="harga_jual" id="harga_jual"  placeholder="0">
+                          <input class="form-control reset" type="text" name="harga_jual" id="harga_jual"  placeholder="0">
                         </div>
                     </div>
 
                     <div class="form-group row">
                       <label class="col-md-3 col-form-label"> Pilih saldo</label>
                         <div class="col-md-9">
-                          <select required class="form-control" name="jenis_saldo" id="jenis_saldo">
+                          <select class="form-control" name="jenis_saldo" id="jenis_saldo">
                             <option value="mitra">Mitra</option>
                             <option value="orderkuota">Order Kuota</option>
                             <option value="digipos">Digipos (chip tsel)</option>
@@ -116,8 +126,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" onclick="if(confirm('Apakah sudah yakin ini bukan hutang?')){loading()}else{return false;};" class="btn btn-md btn-primary" id="input"> Selesai</button>
-                    <button type="button" onClick="hutang_save()" class="btn btn-md btn-warning" id="hutang"> Hutang</button>
+                    <button type="submit" class="btn btn-md btn-primary" id="input"> Selesai</button>
                   </form>
               </div>
             </div>
@@ -146,44 +155,19 @@
   <script src="<?php echo base_url() ?>assets/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
   <script src="<?php echo base_url() ?>assets/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
   <script>
+    function validateForm() {
+      var nama_brg = document.forms["input_form"]["nama_brg"].value;
+      var pembayaran = document.forms["input_form"]["pembayaran"].value;
+      var harga_beli = document.forms["input_form"]["harga_beli"].value;
+      var harga_jual = document.forms["input_form"]["harga_jual"].value;
+      var jenis_saldo = document.forms["input_form"]["jenis_saldo"].value;
 
-    function loading() {
-      $("#loading").css('display', 'flex')
-    }
-
-    function hutang_save(){
-      $("#loading").css('display', 'flex')
-
-      if ($('#nama_brg').val() == '' || $('#harga_beli').val() == '' || $('#harga_jual').val() == '' || $('#jenis_saldo').val() == '') {
-        $("#loading").css('display', 'none')
-        alert('Semua input harus diisi!!!')
-        return
+      if (nama_brg === '' || pembayaran === '' || harga_beli === '' || harga_jual === '' || jenis_saldo === '') {
+        alert("Semua input harus diisi");
+        return false;
+      } else {
+        $("#loading").css('display', 'flex')  
       }
-
-      var url = "<?php echo site_url('option/hutang_simpan')?>";
-      
-      $.ajax({
-        url : url,
-        type: "POST",
-        data: $('#form_transaksi').serialize(),
-        dataType: "JSON",
-        success: function(data) {
-          $("#loading").css('display', 'none')
-          
-          if(data.status){
-            $('#modal_form').modal('hide');
-            $('#form_transaksi').trigger("reset");
-            alert(data.message);
-          } else {
-            $('#modal_form').modal('hide');
-            alert(data.message);
-          }            
-        },
-        error: function (jqXHR, textStatus, errorThrown){
-          $("#loading").css('display', 'none')
-          console.log(errorThrown)
-        }
-      });
     }
   </script>
 </body>

@@ -121,9 +121,15 @@
   <hr class="sidebar-divider">
 
   <li class="nav-item">
-    <a class="nav-link" href="<?= site_url() ?>option/data_hutang">
-    <i class="fas fa-torii-gate"></i>
-      <span>Daftar Hutang</span></a>
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseHutang" aria-expanded="true" aria-controls="collapseTwo">
+    <i class="fas fa-clipboard-list"></i>
+      <span>Hutang</span>
+    </a>
+    <div id="collapseHutang" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item" href="<?= site_url() ?>option/data_hutang"><i class="fas fa-box"></i> Hutang Digital</a>
+        <a class="collapse-item" href="<?= site_url() ?>option/data_hutang_produk"><i class="fas fa-dolly-flatbed"></i> Hutang Produk</a>
+    </div>
   </li>
 
   <li class="nav-item">
