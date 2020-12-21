@@ -55,7 +55,7 @@
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-4">
-              <h4>Saldo Mitra</h4>
+              <h4>Saldo Mitra Shopee</h4>
               <?php
                   if ($data_saldo_mitra->saldo > 250000) { ?>
                       <h2 class="alert alert-success" role="alert" data-saldo="<?php echo $data_saldo_mitra->saldo ?>" data-saldoId="<?php echo $data_saldo_mitra->id ?>" id="saldo_view_mitra"> <?php

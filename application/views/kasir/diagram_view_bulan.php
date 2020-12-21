@@ -302,6 +302,8 @@
                         return 55000 * 26
                       } else if (tgltahun == 'November 2020') {
                         return 60000 * 30
+                      } else if (tgltahun == 'December 2020') {
+                        return 60000 * 30
                       } else {
                         return 0
                       }

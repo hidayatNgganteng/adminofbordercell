@@ -398,6 +398,8 @@
                         return 55000
                      } else if (tgltahun == 'November 2020') {
                         return 60000
+                     } else if (tgltahun == 'December 2020') {
+                        return 60000
                      } else {
                         return 0
                       }
