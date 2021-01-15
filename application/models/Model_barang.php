@@ -147,9 +147,9 @@ class Model_barang extends CI_Model {
 	public function cari_barang($key)
 	{
 		$this->db->select('*');
+		$this->db->where('isExpired =', '0');
 		$this->db->like('nama_barang', $key);
 		$this->db->or_like('id_barang', $key);
-		$this->db->where('isExpired =', '0');
 		$query = $this->db->get('barang');
 		if($query->num_rows() > 0)
 		{
