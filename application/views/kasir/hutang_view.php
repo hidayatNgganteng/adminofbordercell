@@ -161,6 +161,31 @@
            table.ajax.reload(null,false);
        }
 
+       function deleteHutang(idHutang) {
+        $("#loading").css('display','flex')
+
+        var url = "<?php echo site_url('option/delete_hutang/') ?>" + idHutang;
+          
+        $.ajax({
+          url : url,
+          type: "POST",
+          dataType: "JSON",
+          success: function(data){
+            $("#loading").css('display','none')
+
+            if(data.status) {
+              reload_table();
+            } else {
+              alert('error');  
+            }            
+          },
+          error: function (jqXHR, textStatus, errorThrown){
+            $("#loading").css('display','none')
+            alert('error');
+          }
+        });
+       }
+
        function lunasi_hutang_cash(idHutang) {
         if (!lunasiHutangProses) {
           $("#loading").css('display','flex')

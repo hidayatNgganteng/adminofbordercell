@@ -475,6 +475,12 @@ class Option extends CI_Controller {
     echo json_encode([ "status" => TRUE ]);
   }
 
+  public function delete_hutang($id){
+    $this->load->model('model_hutang');
+    $this->model_hutang->delete_by_id($id);
+    echo json_encode([ "status" => TRUE ]);
+  }
+
   public function lunasi_hutang_transfer($id){
     $this->load->model('model_hutang');
 
@@ -1329,8 +1335,9 @@ public function update_ppob(){
 
       if($barang->status == 'hutang'){
         $row[] = '
-          <button class="btn btn-sm btn-warning" onclick="lunasi_hutang_cash('."'".$barang->id_hutang_elektrik."'".')">Lunasi cash</button>
-          <button class="btn btn-sm btn-success" onclick="lunasi_hutang_transfer('."'".$barang->id_hutang_elektrik."'".')">Lunasi transfer</button>
+          <button class="btn btn-sm btn-warning" onclick="lunasi_hutang_cash('."'".$barang->id_hutang_elektrik."'".')">byr cash</button>
+          <button class="btn btn-sm btn-success" onclick="lunasi_hutang_transfer('."'".$barang->id_hutang_elektrik."'".')">byr tf</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteHutang('."'".$barang->id_hutang_elektrik."'".')">Del</button>
         ';
 			}else{
 				$row[] = '<button class="btn btn-sm btn-info disabled">Sudah Lunas</button>';
@@ -1367,8 +1374,8 @@ public function update_ppob(){
 
       if($barang->status == 'hutang'){
         $row[] = '
-        <button class="btn btn-sm btn-warning" onclick="lunasi_hutang_produk_cash('."'".$barang->id_hutang_produk."'".')">Lunasi Cash</button>
-        <button class="btn btn-sm btn-success" onclick="lunasi_hutang_produk_transfer('."'".$barang->id_hutang_produk."'".')">Lunasi Transfer</button>
+        <button class="btn btn-sm btn-warning" onclick="lunasi_hutang_produk_cash('."'".$barang->id_hutang_produk."'".')">Byr cash</button>
+        <button class="btn btn-sm btn-success" onclick="lunasi_hutang_produk_transfer('."'".$barang->id_hutang_produk."'".')">Byr tf</button>
         ';
 			}else{
 				$row[] = '<button class="btn btn-sm btn-info disabled">Sudah Lunas</button>';

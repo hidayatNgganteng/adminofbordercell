@@ -28,6 +28,7 @@ class Model_Hutang extends CI_Model {
 		$this->_get_datatables_query();
 		if($_POST['length'] != -1)
 		$this->db->limit($_POST['length'], $_POST['start']);
+		$this->db->where('status =', 'hutang');
 		$query = $this->db->get();
 		return $query->result();
   }
@@ -37,6 +38,7 @@ class Model_Hutang extends CI_Model {
 		$this->_get_datatables_query_produk();
 		if($_POST['length'] != -1)
 		$this->db->limit($_POST['length'], $_POST['start']);
+		$this->db->where('status =', 'hutang');
 		$query = $this->db->get();
 		return $query->result();
   }
@@ -149,6 +151,12 @@ class Model_Hutang extends CI_Model {
 		$this->db->where('id_hutang_elektrik',$id);
 		$query = $this->db->get();
 		return $query->row();
+	}
+
+	public function delete_by_id($id)
+	{
+		$this->db->where('id_hutang_elektrik',$id);
+		return $this->db->delete($this->table);
 	}
   
   public function get_by_id_produk($id)
