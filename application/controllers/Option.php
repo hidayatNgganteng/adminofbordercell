@@ -481,6 +481,12 @@ class Option extends CI_Controller {
     echo json_encode([ "status" => TRUE ]);
   }
 
+  public function delete_penjualan($id){
+    $this->load->model('model_penjualan');
+    $this->model_penjualan->delete_by_id($id);
+    echo json_encode([ "status" => TRUE ]);
+  }
+
   public function lunasi_hutang_transfer($id){
     $this->load->model('model_hutang');
 
@@ -1267,10 +1273,16 @@ public function update_ppob(){
 			$row = [];
 			$row[] = $n;
 			$row[] = $barang->nama_brg;
-			$row[] = $barang->jumlah;
+      $row[] = $barang->jumlah;
+      $row[] = $barang->harga_beli_elektrik == 0 ? '-' : $barang->harga_beli_elektrik;
 			$row[] = $barang->total_harga;
 			$row[] = $barang->type_penjualan;
-			$row[] = $barang->tgl_transaksi.' '.$barang->waktu;
+      $row[] = $barang->tgl_transaksi.' '.$barang->waktu;
+      if ($this->session->userdata('level')==1) {
+        $row[] = '<button class="btn btn-sm btn-danger" onclick="hapus('."'".$barang->id_penjualan."'".')">Hapus</button>';
+      } else {
+        $row[] = '<button class="btn btn-sm btn-danger" disabled>Hapus</button>';
+      }
 			$data[] = $row;
 		}
 		
@@ -1321,10 +1333,13 @@ public function update_ppob(){
 		$list = $this->model_hutang->get_datatables();
 		$data = [];
 		$no = $_POST['start'];
-		$n=0;
+    $n=0;
+    
 
 		foreach ($list as $barang) {
-			$n++;
+      $forAdmin = $this->session->userdata('level')==1 ? '<button class="btn btn-sm btn-danger" onclick="deleteHutang('."'".$barang->id_hutang_elektrik."'".')">Del</button>' : '';
+      
+      $n++;
 			$row = [];
 			$row[] = $n;
 			$row[] = $barang->nama_brg;
@@ -1336,9 +1351,7 @@ public function update_ppob(){
       if($barang->status == 'hutang'){
         $row[] = '
           <button class="btn btn-sm btn-warning" onclick="lunasi_hutang_cash('."'".$barang->id_hutang_elektrik."'".')">byr cash</button>
-          <button class="btn btn-sm btn-success" onclick="lunasi_hutang_transfer('."'".$barang->id_hutang_elektrik."'".')">byr tf</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteHutang('."'".$barang->id_hutang_elektrik."'".')">Del</button>
-        ';
+          <button class="btn btn-sm btn-success" onclick="lunasi_hutang_transfer('."'".$barang->id_hutang_elektrik."'".')">byr tf</button>'.$forAdmin;
 			}else{
 				$row[] = '<button class="btn btn-sm btn-info disabled">Sudah Lunas</button>';
 			}

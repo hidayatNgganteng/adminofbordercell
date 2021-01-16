@@ -62,16 +62,18 @@
 						<th>no</th>
 						<th>Nama</th>
             <th>Qty</th>
-						<th>Bayar</th>
-            <th>Type penjualan</th>
+            <th>Beli</th>
+						<th>Jual</th>
+            <th>Type</th>
 						<th>Waktu</th>
+            <th>Act</th>
 					</tr>
 				</thead>
 				<tbody>
         </tbody>
         <tfoot>
           <tr>
-            <th colspan="5" style="text-align:right">Total:</th>
+            <th colspan="7" style="text-align:right">Total:</th>
             <th></th>
           </tr>
         </tfoot>
@@ -116,12 +118,12 @@
           table = $('#tabelBarang').DataTable({
               "columnDefs": [
               {
-                  "targets": [ 0,1,2,3,4,5 ],
+                  "targets": [ 0,1,2,3,4,5,6,7],
                   "orderable": false,
               },
               ],
               "rowCallback": function( row, data, dataIndex){
-                const inputData = data[5].split(" ")[0]
+                const inputData = data[6].split(" ")[0]
                 const d = new Date(),
                     month = `${d.getMonth() + 1}`.padStart(2, '0'),
                     day = `${d.getDate()}`.padStart(2, '0'),
@@ -150,6 +152,31 @@
        function reload_table()
        {
            table.ajax.reload(null,false);
+       }
+
+       function hapus(id) {
+        $("#loading").css('display','flex')
+
+        var url = "<?php echo site_url('option/delete_penjualan/') ?>" + id;
+          
+        $.ajax({
+          url : url,
+          type: "POST",
+          dataType: "JSON",
+          success: function(data){
+            $("#loading").css('display','none')
+
+            if(data.status) {
+              reload_table();
+            } else {
+              alert('error');  
+            }            
+          },
+          error: function (jqXHR, textStatus, errorThrown){
+            $("#loading").css('display','none')
+            alert('error');
+          }
+        });
        }
       
   </script>

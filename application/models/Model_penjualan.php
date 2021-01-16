@@ -105,4 +105,10 @@ class Model_penjualan extends CI_Model {
 			$this->db->order_by(key($order), $order[key($order)]);
 		}
 	}
+
+	public function delete_by_id($id)
+	{
+		$this->db->where('id_penjualan',$id);
+		return $this->db->delete($this->table);
+	}
 }
